@@ -1,0 +1,7 @@
+[server]
+hostname: <servername>
+username: <username>
+password: <password>
+
+[filter]
+sieve: /path/to/filter.sieve

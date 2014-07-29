@@ -3,6 +3,7 @@
 import os
 import email
 import sifter.parser
+import ConfigParser
 
 import imaplib
 import sys
@@ -18,7 +19,7 @@ def connect(server, creds):
 
 # INTERNALDATE "19-Nov-2012 17:37:44 +0100")
 def deliver_to(conn, folder, body, flags, timestamp):
-    timestamp = imaplib.Time2Internaldate(timestamp)
+    timestamp = imaplib.Time2Internaldate(time.localtime(timestamp))
 
     conn.append("\"%s\"" % folder, "(%s)" % str.join(" ", flags),
                 timestamp, body)
@@ -28,12 +29,12 @@ def deliver_message(conn, rules, body):
 
     timestamp = None
     try:
-        timestamp = email.utils.parsedate(msg['Date'])
+        timestamp = email.utils.mktime_tz(email.utils.parsedate_tz(msg['Date']))
     except Exception, e:
 	pass
 
     if not timestamp:
-        timestamp = datetime.datetime.now().timetuple()
+        timestamp = time.time()
 
     actions = []
 
@@ -74,14 +75,27 @@ def deliver_message(conn, rules, body):
         deliver_to(conn, "INBOX", body, flags, timestamp)
         pass # Goes to inbox
 
-
 if __name__ == '__main__':
-
-    server = "your-server"
-    creds = { 'u' : 'username',
-              'p' : 'password' }
+    if len(sys.argv) != 2:
+        print >>sys.stderr, "usage: imapmda.py <configfile>"
+        sys.exit(1)
+    config = ConfigParser.ConfigParser()
     try:
-        filter = open('filter.sieve')
+        cfile = open(sys.argv[1])
+    except IOError, e:
+        print "error: %s: %s" % (e.args[1], e.filename)
+        sys.exit(1)
+    config.readfp(cfile)
+
+    username = config.get('server', 'username')
+    password = config.get('server', 'password')
+    hostname = config.get('server', 'hostname')
+    sieve = config.get('filter', 'sieve')
+
+    creds = { 'u' : username, 'p' : password }
+
+    try:
+        filter = open(sieve)
     except IOError, e:
         filter = open('/dev/null')
 
@@ -90,7 +104,13 @@ if __name__ == '__main__':
     except Exception, e:
         rules = None
 
-    conn = connect(server, creds)
+    conn = connect('localhost', creds)
+
     body = sys.stdin.read()
-    deliver_message(conn, rules, body)
+    try:
+        deliver_message(conn, rules, body)
+    except Exception, e:
+        print >>sys.stderr, "FAILED: %s" % e
+        print >>sys.stderr, body
+        sys.exit(1);
     sys.exit(0)
