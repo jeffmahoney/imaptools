@@ -67,6 +67,8 @@ def deliver_message(conn, rules, body):
         elif action[0] == 'stop' or action[0] == 'discard':
             fall_through_to_inbox = False
             break
+	elif action[0] == 'rewrite':
+            body = re.sub(action[1][0], action[1][1], body)
         else:
             raise Exception("Unknown action %s" % action)
 
