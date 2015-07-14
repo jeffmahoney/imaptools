@@ -106,7 +106,7 @@ if __name__ == '__main__':
     except Exception, e:
         rules = None
 
-    conn = connect('localhost', creds)
+    conn = connect(hostname, creds)
 
     body = sys.stdin.read()
     try:
