@@ -13,6 +13,7 @@ import os
 import email
 import sifter.parser
 import ConfigParser
+from optparse import OptionParser
 
 import imaplib
 import sys
@@ -87,12 +88,17 @@ def deliver_message(conn, rules, body):
         pass # Goes to inbox
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print >>sys.stderr, "usage: imapmda.py <configfile>"
+    parser = OptionParser(version='%prog' + __revision__,
+                          usage='%prog [options] <configfile>')
+    (options, args) = parser.parse_args()
+
+    if not args or len(args) != 1:
+        parser.error("must supply config file")
         sys.exit(1)
+
     config = ConfigParser.ConfigParser()
     try:
-        cfile = open(sys.argv[1])
+        cfile = open(args[0])
     except IOError, e:
         print >>sys.stderr, "error: %s: %s" % (e.args[1], e.filename)
         sys.exit(1)
