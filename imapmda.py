@@ -31,8 +31,15 @@ def connect(server, creds):
 def deliver_to(conn, folder, body, flags, timestamp):
     timestamp = imaplib.Time2Internaldate(time.localtime(timestamp))
 
-    conn.append("\"%s\"" % folder, "(%s)" % str.join(" ", flags),
-                timestamp, body)
+    if conn:
+        conn.append("\"%s\"" % folder, "(%s)" % str.join(" ", flags),
+                    timestamp, body)
+    else:
+        print "flags=%s" % str.join(" ", flags)
+        print "timestamp=%s" % timestamp
+        print "=== begin message ==="
+        print body
+        print "=== end message ==="
 
 def deliver_message(conn, rules, body):
     msg = email.message_from_string(body)
@@ -90,6 +97,8 @@ def deliver_message(conn, rules, body):
 if __name__ == '__main__':
     parser = OptionParser(version='%prog' + __revision__,
                           usage='%prog [options] <configfile>')
+    parser.add_option('-n', '--dry-run', action='store_true',
+                      help="write modified message to stdout instead of executing on IMAP server", default=False)
     (options, args) = parser.parse_args()
 
     if not args or len(args) != 1:
@@ -121,7 +130,9 @@ if __name__ == '__main__':
     except Exception, e:
         rules = None
 
-    conn = connect(hostname, creds)
+    conn = None
+    if not options.dry_run:
+        conn = connect(hostname, creds)
 
     body = sys.stdin.read()
     try:
