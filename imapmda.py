@@ -94,7 +94,7 @@ if __name__ == '__main__':
     try:
         cfile = open(sys.argv[1])
     except IOError, e:
-        print "error: %s: %s" % (e.args[1], e.filename)
+        print >>sys.stderr, "error: %s: %s" % (e.args[1], e.filename)
         sys.exit(1)
     config.readfp(cfile)
 
