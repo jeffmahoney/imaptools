@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim: sw=4 ts=4 et si:
 
 import os
 import email
@@ -31,7 +32,7 @@ def deliver_message(conn, rules, body):
     try:
         timestamp = email.utils.mktime_tz(email.utils.parsedate_tz(msg['Date']))
     except Exception, e:
-	pass
+        pass
 
     if not timestamp:
         timestamp = time.time()
@@ -67,7 +68,7 @@ def deliver_message(conn, rules, body):
         elif action[0] == 'stop' or action[0] == 'discard':
             fall_through_to_inbox = False
             break
-	elif action[0] == 'rewrite':
+        elif action[0] == 'rewrite':
             body = re.sub(action[1][0], action[1][1], body)
         else:
             raise Exception("Unknown action %s" % action)
