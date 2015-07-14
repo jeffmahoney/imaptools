@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # vim: sw=4 ts=4 et si:
+"""
+Parse and potentially edit an email message from stdin and deposit it in
+an IMAP store.
+From Jeff Mahoney
+"""
+
+__revision__ = 'Revision: 0.3'
+__author__ = 'Jeff Mahoney'
 
 import os
 import email
