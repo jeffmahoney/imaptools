@@ -15,6 +15,7 @@ __author__ = 'Jeff Mahoney'
 
 import os
 import email
+import traceback
 import sifter.parser
 try:
     import configparser
@@ -158,6 +159,9 @@ if __name__ == '__main__':
         deliver_message(conn, rules, body)
     except Exception as e:
         print("FAILED: {}".format(e), file=sys.stderr)
+        print("------ backtrace ------", file=sys.stderr)
+        traceback.print_exc()
+        print("---- end backtrace ----", file=sys.stderr)
         print(body, file=sys.stderr)
         sys.exit(1);
     sys.exit(0)
