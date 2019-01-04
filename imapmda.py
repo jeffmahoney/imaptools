@@ -29,6 +29,8 @@ import email.utils
 import datetime
 import time
 
+seen_dict = {}
+
 def connect(server, creds):
     conn = imaplib.IMAP4_SSL(server)
     conn.login(creds['u'], creds['p'])
@@ -37,6 +39,18 @@ def connect(server, creds):
 # INTERNALDATE "19-Nov-2012 17:37:44 +0100")
 def deliver_to(conn, folder, body, flags, timestamp):
     timestamp = imaplib.Time2Internaldate(time.localtime(timestamp))
+
+    flags_str = ",".join(flags)
+
+    if folder in seen_dict:
+        if flags_str in seen_dict[folder]:
+            print("DD {} {}".format(folder, flags))
+        return
+        seen_dict[folder].append(flags_str)
+    else:
+        seen_dict[folder] = [flags_str]
+
+    print(">> {} {}".format(folder, flags))
 
     if conn:
         conn.append("\"{}\"".format(folder), "({})".format(" ".join(flags)),
@@ -69,12 +83,10 @@ def deliver_message(conn, rules, body):
     flags = []
     for action in actions:
         if action[0] == 'keep':
-            print(">> {} {}".format("INBOX", flags))
             deliver_to(conn, "INBOX", body, flags, timestamp)
             fall_through_to_inbox = False
         elif action[0] == 'fileinto':
             fall_through_to_inbox = False
-            print(">> {} {}".format(action[1][0], flags))
             deliver_to(conn, action[1][0], body, flags, timestamp)
             pass # Goes into action[1]
         elif action[0] == 'addflag':
@@ -97,7 +109,6 @@ def deliver_message(conn, rules, body):
             raise Exception("Unknown action {}".format(action))
 
     if fall_through_to_inbox:
-        print(">> {} {}".format("INBOX", flags))
         deliver_to(conn, "INBOX", body, flags, timestamp)
         pass # Goes to inbox
 
