@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # vim: sw=4 ts=4 et si:
 """
 Parse and potentially edit an email message from stdin and deposit it in
@@ -6,13 +6,20 @@ an IMAP store.
 From Jeff Mahoney
 """
 
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 __revision__ = 'Revision: 0.3'
 __author__ = 'Jeff Mahoney'
 
 import os
 import email
 import sifter.parser
-import ConfigParser
+try:
+    import configparser
+except ImportError as e:
+    import ConfigParser as configparser
 from optparse import OptionParser
 
 import imaplib
@@ -35,11 +42,11 @@ def deliver_to(conn, folder, body, flags, timestamp):
         conn.append("\"{}\"".format(folder), "({})".format(" ".join(flags)),
                     timestamp, body)
     else:
-        print "flags={}".format(str.join(" ", flags))
-        print "timestamp={}".format(timestamp)
-        print "=== begin message ==="
-        print body
-        print "=== end message ==="
+        print("flags={}".format(str.join(" ", flags)))
+        print("timestamp={}".format(timestamp))
+        print("=== begin message ===")
+        print(body)
+        print("=== end message ===")
 
 def deliver_message(conn, rules, body):
     msg = email.message_from_string(body)
@@ -47,7 +54,7 @@ def deliver_message(conn, rules, body):
     timestamp = None
     try:
         timestamp = email.utils.mktime_tz(email.utils.parsedate_tz(msg['Date']))
-    except Exception, e:
+    except Exception as e:
         pass
 
     if not timestamp:
@@ -62,12 +69,12 @@ def deliver_message(conn, rules, body):
     flags = []
     for action in actions:
         if action[0] == 'keep':
-            print ">> {} {}".format("INBOX", flags)
+            print(">> {} {}".format("INBOX", flags))
             deliver_to(conn, "INBOX", body, flags, timestamp)
             fall_through_to_inbox = False
         elif action[0] == 'fileinto':
             fall_through_to_inbox = False
-            print ">> {} {}".format(action[1][0], flags)
+            print(">> {} {}".format(action[1][0], flags))
             deliver_to(conn, action[1][0], body, flags, timestamp)
             pass # Goes into action[1]
         elif action[0] == 'addflag':
@@ -90,7 +97,7 @@ def deliver_message(conn, rules, body):
             raise Exception("Unknown action {}".format(action))
 
     if fall_through_to_inbox:
-        print ">> {} {}".format("INBOX", flags)
+        print(">> {} {}".format("INBOX", flags))
         deliver_to(conn, "INBOX", body, flags, timestamp)
         pass # Goes to inbox
 
@@ -105,11 +112,11 @@ if __name__ == '__main__':
         parser.error("must supply config file")
         sys.exit(1)
 
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     try:
         cfile = open(args[0])
-    except IOError, e:
-        print >>sys.stderr, "error: {}: {}".format(e.args[1], e.filename)
+    except IOError as e:
+        print("error: {}: {}".format(e.args[1], e.filename), file=sys.stderr)
         sys.exit(1)
     config.readfp(cfile)
 
@@ -123,12 +130,12 @@ if __name__ == '__main__':
 
     try:
         filter = open(sieve)
-    except IOError, e:
+    except IOError as e:
         filter = open('/dev/null')
 
     try:
         rules = sifter.parser.parse_file(filter)
-    except Exception, e:
+    except Exception as e:
         rules = None
 
     conn = None
@@ -138,8 +145,8 @@ if __name__ == '__main__':
     body = sys.stdin.read()
     try:
         deliver_message(conn, rules, body)
-    except Exception, e:
-        print >>sys.stderr, "FAILED: {}".format(e)
-        print >>sys.stderr, body
+    except Exception as e:
+        print("FAILED: {}".format(e), file=sys.stderr)
+        print(body, file=sys.stderr)
         sys.exit(1);
     sys.exit(0)
