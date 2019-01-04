@@ -55,7 +55,7 @@ def deliver_to(conn, folder, body, flags, timestamp):
 
     if conn:
         conn.append("\"{}\"".format(folder), "({})".format(" ".join(flags)),
-                    timestamp, body)
+                    timestamp, body.encode('utf-8', 'backslashreplace')
     else:
         print("flags={}".format(str.join(" ", flags)))
         print("timestamp={}".format(timestamp))
