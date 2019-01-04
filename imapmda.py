@@ -32,11 +32,11 @@ def deliver_to(conn, folder, body, flags, timestamp):
     timestamp = imaplib.Time2Internaldate(time.localtime(timestamp))
 
     if conn:
-        conn.append("\"%s\"" % folder, "(%s)" % str.join(" ", flags),
+        conn.append("\"{}\"".format(folder), "({})".format(" ".join(flags)),
                     timestamp, body)
     else:
-        print "flags=%s" % str.join(" ", flags)
-        print "timestamp=%s" % timestamp
+        print "flags={}".format(str.join(" ", flags))
+        print "timestamp={}".format(timestamp)
         print "=== begin message ==="
         print body
         print "=== end message ==="
@@ -62,12 +62,12 @@ def deliver_message(conn, rules, body):
     flags = []
     for action in actions:
         if action[0] == 'keep':
-            print ">> %s %s" % ("INBOX", flags)
+            print ">> {} {}".format("INBOX", flags)
             deliver_to(conn, "INBOX", body, flags, timestamp)
             fall_through_to_inbox = False
         elif action[0] == 'fileinto':
             fall_through_to_inbox = False
-            print ">> %s %s" % (action[1][0], flags)
+            print ">> {} {}".format(action[1][0], flags)
             deliver_to(conn, action[1][0], body, flags, timestamp)
             pass # Goes into action[1]
         elif action[0] == 'addflag':
@@ -87,10 +87,10 @@ def deliver_message(conn, rules, body):
         elif action[0] == 'rewrite':
             body = re.sub(action[1][0], action[1][1], body, flags=re.I|re.M)
         else:
-            raise Exception("Unknown action %s" % action)
+            raise Exception("Unknown action {}".format(action))
 
     if fall_through_to_inbox:
-        print ">> %s %s" % ("INBOX", flags)
+        print ">> {} {}".format("INBOX", flags)
         deliver_to(conn, "INBOX", body, flags, timestamp)
         pass # Goes to inbox
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     try:
         cfile = open(args[0])
     except IOError, e:
-        print >>sys.stderr, "error: %s: %s" % (e.args[1], e.filename)
+        print >>sys.stderr, "error: {}: {}".format(e.args[1], e.filename)
         sys.exit(1)
     config.readfp(cfile)
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     try:
         deliver_message(conn, rules, body)
     except Exception, e:
-        print >>sys.stderr, "FAILED: %s" % e
+        print >>sys.stderr, "FAILED: {}".format(e)
         print >>sys.stderr, body
         sys.exit(1);
     sys.exit(0)
