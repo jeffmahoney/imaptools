@@ -113,12 +113,13 @@ if __name__ == '__main__':
         sys.exit(1)
     config.readfp(cfile)
 
-    username = config.get('server', 'username')
-    password = config.get('server', 'password')
-    hostname = config.get('server', 'hostname')
-    sieve = config.get('filter', 'sieve')
+    if not options.dry_run:
+        username = config.get('server', 'username')
+        password = config.get('server', 'password')
+        hostname = config.get('server', 'hostname')
+        creds = { 'u' : username, 'p' : password }
 
-    creds = { 'u' : username, 'p' : password }
+    sieve = config.get('filter', 'sieve')
 
     try:
         filter = open(sieve)
